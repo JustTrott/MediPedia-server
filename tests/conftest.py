@@ -66,3 +66,13 @@ def test_medicine(test_db):
         fda_id="TEST123"
     )
     return medicine
+
+@pytest.fixture
+def test_review(test_user, test_medicine):
+    review = Review.create(
+        user=test_user,
+        medicine=test_medicine,
+        rating=5,
+        comment="Great medicine!"
+    )
+    return review
