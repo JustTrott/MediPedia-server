@@ -72,6 +72,28 @@ API documentation (Swagger UI) is available at: http://localhost:8000/docs
 -   GET `/api/v1/reviews/medicine/{medicine_id}` - Get all reviews for a medicine
 -   GET `/api/v1/reviews/user/{user_id}` - Get all reviews by a user
 
+## Testing
+
+Testing is done via pytest and coverage report is made via coverage.py
+
+```bash
+python -m coverage run -m pytest
+```
+
+And then you can view the report using:
+
+```bash
+python -m coverage report
+```
+
+or
+
+```bash
+python -m coverage html
+```
+
+for a more thorough report.
+
 ## License
 
 MIT
