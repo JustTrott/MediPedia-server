@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from peewee import DoesNotExist
 from app.models.review import Review
 
 router = APIRouter()
@@ -16,7 +17,7 @@ async def get_review(review_id: int):
     try:
         review = Review.get_by_id(review_id)
         return review.__data__
-    except Review.DoesNotExist:
+    except DoesNotExist:
         raise HTTPException(status_code=404, detail="Review not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

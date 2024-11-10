@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from peewee import DoesNotExist
 from app.models.user import User
 
 router = APIRouter()
@@ -16,7 +17,7 @@ async def get_user(user_id: int):
     try:
         user = User.get_by_id(user_id)
         return user.__data__
-    except User.DoesNotExist:
+    except DoesNotExist:
         raise HTTPException(status_code=404, detail="User not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 

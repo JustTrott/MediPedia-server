@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from peewee import DoesNotExist
 from app.models.medicine import Medicine
 
 router = APIRouter()
@@ -16,7 +17,7 @@ async def get_medicine(medicine_id: int):
     try:
         medicine = Medicine.get_by_id(medicine_id)
         return medicine.__data__
-    except Medicine.DoesNotExist:
+    except DoesNotExist:
         raise HTTPException(status_code=404, detail="Medicine not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 
