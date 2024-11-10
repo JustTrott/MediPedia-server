@@ -57,3 +57,12 @@ def test_profile(test_user):
     )
     MedicalData.create(profile=profile)
     return profile 
+
+@pytest.fixture
+def test_medicine(test_db):
+    medicine = Medicine.create(
+        name="Test Medicine",
+        description="Test description",
+        fda_id="TEST123"
+    )
+    return medicine
