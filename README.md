@@ -46,7 +46,7 @@ A FastAPI backend application for medicine reviews with OpenFDA and Cohere AI in
 Start the development server:
 
 ```bash
-uvicorn app.main:app --reload
+python -m uvicorn app.main:app --reload
 ```
 
 The API will be available at: http://localhost:8000
