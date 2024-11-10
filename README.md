@@ -94,6 +94,26 @@ python -m coverage html
 
 for a more thorough report.
 
+## for active developers
+
+Run this command to enable merging instead of rebasing. (You need to run this only once per project)
+
+```bash
+git config pull.rebase false
+```
+
+Then, you can just pull and resolve the merge conflicts.
+
+```bash
+git pull
+```
+
+Don´t forget to check for new dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
 ## License
 
 MIT
