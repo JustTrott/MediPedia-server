@@ -1,9 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from peewee import DoesNotExist
+from app.api.v1.endpoints.profiles import convert_to_string
 from app.models.medicine import Medicine
+from app.models.profile import MedicalData, PersonalProfile
 from app.schemas.medicine import MedicineCreate
 from app.models.user import User
-from app.services.openfda_service.py import *
+from app.services.openfda_service import extract_label, find_medicine_by_label, filter_by_profile
 
 router = APIRouter()
 
