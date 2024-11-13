@@ -5,9 +5,12 @@ from app.models.medicine import Medicine
 from app.models.profile import MedicalData, PersonalProfile
 from app.schemas.medicine import MedicineCreate
 from app.models.user import User
-from app.services.openfda_service import extract_label, find_medicine_by_label, filter_by_profile
+from app.services.cohere_service import CohereService
+from app.services.openfda_service import OpenFDAService
 
 router = APIRouter()
+cohereService = CohereService()
+openFDAService = OpenFDAService()
 
 @router.get("/")
 async def get_medicines():
@@ -52,11 +55,11 @@ async def display_list(query: str, user_id: int):
 
         stringProfileRep = convert_to_string(userProfile)+convert_to_string(userMedicalProfile)
 
-        extractLabel = extract_label(query)
+        extractLabel = cohereService.extract_label(query)
 
-        medicineByLabel = find_medicine_by_label(extractLabel)
+        medicineByLabel = openFDAService.find_medicine_by_label(extractLabel)
 
-        filterResult = filter_by_profile(medicineByLabel, stringProfileRep)
+        filterResult = cohereService.filter_by_profile(medicineByLabel, stringProfileRep)
 
         return filterResult
     except DoesNotExist:
