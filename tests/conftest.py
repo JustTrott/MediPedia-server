@@ -2,6 +2,7 @@ import os
 import sys
 import pytest
 from fastapi.testclient import TestClient
+from unittest.mock import AsyncMock, patch, MagicMock
 
 # Add project root to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -13,6 +14,23 @@ from app.models.user import User
 from app.models.profile import PersonalProfile, MedicalData
 from app.models.medicine import Medicine
 from app.models.review import Review
+from app.services.cohere_service import CohereService
+
+@pytest.fixture
+def mock_cohere_client():
+    with patch('cohere.ClientV2') as mock_client:
+        # Create a mock instance
+        mock_instance = MagicMock()
+        mock_client.return_value = mock_instance
+        
+        # Create AsyncMock for generate method
+        mock_instance.generate = AsyncMock()
+        
+        yield mock_instance
+
+@pytest.fixture
+def cohere_service(mock_cohere_client):
+    return CohereService()
 
 @pytest.fixture(scope="function")
 def client():
