@@ -85,3 +85,7 @@ async def update_medical_data(profile_id: int, medical_data: MedicalDataCreate):
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 
+
+
+def convert_to_string(instance):
+    return " ".join(str(value) for value in instance.__data__.values())
