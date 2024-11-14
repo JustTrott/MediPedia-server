@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from peewee import DoesNotExist
 from app.models.medicine import Medicine
 from app.models.profile import MedicalData, PersonalProfile
+from app.models.review import Review
 from app.schemas.medicine import MedicineCreate
 from app.models.user import User
 from app.services.cohere_service import CohereService
@@ -86,10 +87,40 @@ async def display_list(query: str, user_id: int):
         safety_result = cohere_service.filter_by_profile(medicine_str, profile_data)
         print(f"[DEBUG] Safety check result: {safety_result}")
         
-        return {
-            "medicine": medicine_data,
-            "safety": safety_result
-        }
+        # Get or create medicine record
+        try:
+            medicine, created = Medicine.get_or_create(
+                fda_id=medicine_data['id'],
+                defaults={
+                    'name': medicine_data['openfda']['generic_name'][0] if medicine_data['openfda'].get('generic_name') else medicine_data['openfda']['brand_name'][0],
+                    'description': medicine_data.get('indications_and_usage', [''])[0]
+                }
+            )
+            print(f"[DEBUG] Medicine {'created' if created else 'retrieved'}: {medicine.__data__}")
+
+            # Get associated reviews
+            reviews = list(medicine.reviews.select(
+                Review, User
+            ).join(
+                User
+            ).order_by(
+                Review.created_at.desc()
+            ).dicts())
+            
+            print(f"[DEBUG] Found {len(reviews)} reviews")
+
+            return {
+                "medicine": {
+                    **medicine.__data__,
+                    "reviews": reviews
+                },
+                "safety": safety_result,
+                "fda_data": medicine_data
+            }
+
+        except Exception as e:
+            print(f"[DEBUG] Error creating/retrieving medicine: {str(e)}")
+            raise HTTPException(status_code=500, detail="Error processing medicine data")
 
     except HTTPException as e:
         print(f"[DEBUG] HTTPException occurred: {str(e)}")

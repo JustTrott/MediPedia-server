@@ -9,7 +9,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
 from app.main import app
-from app.database import db
+from app.database import test_db as db
 from app.models.user import User
 from app.models.profile import PersonalProfile, MedicalData
 from app.models.medicine import Medicine
@@ -90,9 +90,9 @@ def test_profile(test_user):
 @pytest.fixture
 def test_medicine(test_db):
     medicine = Medicine.create(
-        name="Test Medicine",
-        description="Test description",
-        fda_id="TEST123"
+        name="ibuprofen",
+        description="For temporary relief of minor aches and pains",
+        fda_id="123456"
     )
     return medicine
 
@@ -102,6 +102,83 @@ def test_review(test_user, test_medicine):
         user=test_user,
         medicine=test_medicine,
         rating=5,
-        comment="Great medicine!"
+        comment="Great medicine!",
+        sentiment_score=0.9
     )
     return review
+
+@pytest.fixture
+def mock_openfda_full_response():
+    return {
+        "meta": {
+            "results": {
+                "total": 1
+            }
+        },
+        "results": [{
+            "spl_product_data_elements": ["test data"],
+            "active_ingredient": ["ibuprofen 200mg"],
+            "purpose": ["Pain reliever"],
+            "indications_and_usage": ["For temporary relief of minor aches and pains"],
+            "warnings": ["Do not use if allergic"],
+            "do_not_use": ["If you have ever had an allergic reaction"],
+            "ask_doctor": ["Before use if pregnant"],
+            "ask_doctor_or_pharmacist": ["About interactions"],
+            "stop_use": ["If pain persists"],
+            "pregnancy_or_breast_feeding": ["Ask health professional"],
+            "keep_out_of_reach_of_children": ["Store in safe place"],
+            "dosage_and_administration": ["Take 1 tablet every 4-6 hours"],
+            "storage_and_handling": ["Store at room temperature"],
+            "inactive_ingredient": ["starch, cellulose"],
+            "questions": ["Call 1-800-xxx-xxxx"],
+            "package_label_principal_display_panel": ["Front panel image"],
+            "set_id": "abc123",
+            "id": "123456",
+            "effective_time": "20230101",
+            "version": "1",
+            "openfda": {
+                "application_number": ["ANDA123456"],
+                "brand_name": ["Advil"],
+                "generic_name": ["ibuprofen"],
+                "manufacturer_name": ["Pfizer"],
+                "product_ndc": ["12345-678-90"],
+                "product_type": ["HUMAN OTC DRUG"],
+                "route": ["ORAL"],
+                "substance_name": ["IBUPROFEN"],
+                "rxcui": ["123456"],
+                "spl_id": ["abc123"],
+                "spl_set_id": ["def456"],
+                "package_ndc": ["12345-678-90"],
+                "is_original_packager": [True],
+                "upc": ["123456789012"],
+                "unii": ["WK2XYI10QM"]
+            }
+        }]
+    }
+
+@pytest.fixture
+def mock_openfda_empty_response():
+    return {
+        "meta": {
+            "results": {
+                "total": 0
+            }
+        },
+        "results": []
+    }
+
+@pytest.fixture
+def mock_openfda_malformed_response():
+    return {
+        "meta": {
+            "results": {
+                "total": 1
+            }
+        },
+        "results": [{
+            "id": "123456",
+            "openfda": {
+                "generic_name": ["ibuprofen"]
+            }
+        }]
+    }
