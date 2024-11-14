@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch
 
 @pytest.fixture
 def medicine_data():
@@ -37,10 +37,9 @@ def test_get_medicines_list(client, test_medicine):
     assert len(data) > 0
     assert data[0]["name"] == test_medicine.name
 
-@pytest.mark.asyncio
-async def test_display_list_success(client, test_user, test_profile, mock_openfda_response, test_db):
-    with patch('app.services.cohere_service.CohereService.extract_label', new_callable=AsyncMock) as mock_extract, \
-         patch('app.services.cohere_service.CohereService.filter_by_profile', new_callable=AsyncMock) as mock_filter, \
+def test_display_list_success(client, test_user, test_profile, mock_openfda_response, test_db):
+    with patch('app.services.cohere_service.CohereService.extract_label') as mock_extract, \
+         patch('app.services.cohere_service.CohereService.filter_by_profile') as mock_filter, \
          patch('app.services.openfda_service.OpenFDAService.find_medicine_by_label') as mock_find:
         
         mock_extract.return_value = "acetaminophen"
@@ -61,9 +60,8 @@ def test_display_list_user_not_found(client, test_db):
     assert response.status_code == 404
     assert "not found" in response.json()["detail"]
 
-@pytest.mark.asyncio
-async def test_display_list_medicine_not_found(client, test_user, test_profile):
-    with patch('app.services.cohere_service.CohereService.extract_label', new_callable=AsyncMock) as mock_extract, \
+def test_display_list_medicine_not_found(client, test_user, test_profile):
+    with patch('app.services.cohere_service.CohereService.extract_label') as mock_extract, \
          patch('app.services.openfda_service.OpenFDAService.find_medicine_by_label') as mock_find:
         
         mock_extract.return_value = "unknown_medicine"
@@ -74,10 +72,9 @@ async def test_display_list_medicine_not_found(client, test_user, test_profile):
         assert response.status_code == 404
         assert "Medicine not found" in response.json()["detail"]
 
-@pytest.mark.asyncio
-async def test_display_list_unsafe_medicine(client, test_user, test_profile, mock_openfda_response):
-    with patch('app.services.cohere_service.CohereService.extract_label', new_callable=AsyncMock) as mock_extract, \
-         patch('app.services.cohere_service.CohereService.filter_by_profile', new_callable=AsyncMock) as mock_filter, \
+def test_display_list_unsafe_medicine(client, test_user, test_profile, mock_openfda_response):
+    with patch('app.services.cohere_service.CohereService.extract_label') as mock_extract, \
+         patch('app.services.cohere_service.CohereService.filter_by_profile') as mock_filter, \
          patch('app.services.openfda_service.OpenFDAService.find_medicine_by_label') as mock_find:
         
         mock_extract.return_value = "aspirin"
@@ -91,9 +88,8 @@ async def test_display_list_unsafe_medicine(client, test_user, test_profile, moc
         assert data["safety"]["can_take"] is False
         assert "Patient has allergies" in data["safety"]["warning"]
 
-@pytest.mark.asyncio
-async def test_display_list_invalid_cohere_response(client, test_user, test_profile):
-    with patch('app.services.cohere_service.CohereService.extract_label', new_callable=AsyncMock) as mock_extract:
+def test_display_list_invalid_cohere_response(client, test_user, test_profile):
+    with patch('app.services.cohere_service.CohereService.extract_label') as mock_extract:
         mock_extract.return_value = ""
 
         response = client.post(f"/api/v1/medicines/{test_user.id}/search/Tylenol")

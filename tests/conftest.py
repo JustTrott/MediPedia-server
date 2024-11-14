@@ -2,7 +2,7 @@ import os
 import sys
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 
 # Add project root to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,7 +21,7 @@ def mock_cohere_client():
     with patch('cohere.ClientV2') as mock_client:
         mock_instance = MagicMock()
         mock_client.return_value = mock_instance
-        mock_instance.generate = AsyncMock()
+        mock_instance.chat = MagicMock()
         yield mock_instance
 
 @pytest.fixture
