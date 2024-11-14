@@ -6,7 +6,7 @@ class CohereService:
     def __init__(self):
         self.client = cohere.ClientV2(settings.COHERE_API_KEY)
     
-    async def extract_label(self, text: str) -> str:
+    def extract_label(self, text: str) -> str:
         """
         Extract generic drug name from unstructured text using Cohere's generate endpoint.
         
@@ -16,41 +16,51 @@ class CohereService:
         Returns:
             str: Generic drug name
         """
-        prompt = f"""Extract the generic drug name from the following text. 
-Return only the generic name without any additional text or formatting.
+        messages = [
+            {
+                "role": "system",
+                "content": """You are a pharmaceutical expert. Extract the generic drug name (active ingredient) from the given text.
+
+Rules:
+- Convert brand names to their generic equivalent (e.g., Tylenol → acetaminophen)
+- Return ONLY the generic name in lowercase, nothing else
+- Use international generic names when possible (e.g., paracetamol → acetaminophen)
+- If multiple drugs are mentioned, return only the primary active ingredient
 
 Examples:
---
-Text: "Tylenol (acetaminophen) 500mg tablets"
-acetaminophen
---
-Text: "Advil tablets containing ibuprofen 200mg"
-ibuprofen
---
-Text: "Amoxicillin 500mg antibiotic capsules"
-amoxicillin
---
-Text: {text}
-"""
+Input: "I have some Tylenol for my headache"
+Output: acetaminophen
 
-        response = await self.client.generate(
+Input: "Taking 500mg paracetamol tablets"
+Output: acetaminophen
+
+Input: "Advil liquid gels 200mg"
+Output: ibuprofen
+
+Input: "My doctor prescribed Lipitor 40mg"
+Output: atorvastatin"""
+            },
+            {
+                "role": "user",
+                "content": f"Text: {text}"
+            }
+        ]
+
+        response = self.client.chat(
             model="command",
-            prompt=prompt,
-            max_tokens=20,
+            messages=messages,
             temperature=0.0,  # Use low temperature for consistent extraction
-            k=0,
-            stop_sequences=["--"],
         )
 
         # Get the generated text and clean it
-        extracted_name = response.generations[0].text.strip().lower()
+        extracted_name = response.message.content[0].text.strip().lower()
         
         # Remove any extra whitespace or newlines
         extracted_name = " ".join(extracted_name.split())
         
         return extracted_name
 
-    async def filter_by_profile(self, medicine_data: str, profile_data: str) -> dict:
+    def filter_by_profile(self, medicine_data: str, profile_data: str) -> dict:
         """
         Analyze if a medicine is safe for a patient based on their profile.
         
@@ -61,7 +71,10 @@ Text: {text}
         Returns:
             dict: Contains 'can_take' (bool) and 'warning' (str or None)
         """
-        prompt = f"""You are a medical safety assistant. Analyze if the medicine is safe for the patient based on their profile.
+        messages = [
+            {
+                "role": "system",
+                "content": """You are a medical safety assistant. Analyze if the medicine is safe for the patient based on their profile.
 Return a JSON object with two fields:
 - can_take: boolean indicating if the medicine is safe
 - warning: string explaining any issues, or null if there are no issues
@@ -75,34 +88,34 @@ Consider:
 
 Examples:
 --
-Medicine: {{"name": "Aspirin", "description": "Blood thinner, pain reliever"}}
-Profile: {{"allergies": "aspirin, penicillin", "conditions": "none", "age": 45}}
-{{"can_take": false, "warning": "Patient has aspirin allergy - DO NOT TAKE"}}
+Medicine: {"name": "Aspirin", "description": "Blood thinner, pain reliever"}
+Profile: {"allergies": "aspirin, penicillin", "conditions": "none", "age": 45}
+{"can_take": false, "warning": "Patient has aspirin allergy - DO NOT TAKE"}
 --
-Medicine: {{"name": "Ibuprofen", "description": "NSAID pain reliever"}}
-Profile: {{"allergies": "none", "conditions": "peptic ulcer", "age": 35}}
-{{"can_take": false, "warning": "NSAIDs can worsen peptic ulcers - avoid use"}}
+Medicine: {"name": "Ibuprofen", "description": "NSAID pain reliever"}
+Profile: {"allergies": "none", "conditions": "peptic ulcer", "age": 35}
+{"can_take": false, "warning": "NSAIDs can worsen peptic ulcers - avoid use"}
 --
-Medicine: {{"name": "Acetaminophen", "description": "Pain reliever and fever reducer"}}
-Profile: {{"allergies": "none", "conditions": "none", "age": 30}}
-{{"can_take": true, "warning": null}}
---
-Medicine: {medicine_data}
-Profile: {profile_data}
-"""
+Medicine: {"name": "Acetaminophen", "description": "Pain reliever and fever reducer"}
+Profile: {"allergies": "none", "conditions": "none", "age": 30}
+{"can_take": true, "warning": null}
+--"""
+            },
+            {
+                "role": "user",
+                "content": f"Medicine: {medicine_data}\nProfile: {profile_data}"
+            }
+        ]
 
         try:
-            response = await self.client.generate(
+            response = self.client.chat(
                 model="command",
-                prompt=prompt,
-                max_tokens=200,
+                messages=messages,
                 temperature=0.0,
-                k=0,
-                stop_sequences=["--"],
             )
 
             # Get the generated text and clean it
-            result_text = response.generations[0].text.strip()
+            result_text = response.message.content[0].text.strip()
             
             try:
                 # Parse the JSON response
@@ -126,7 +139,7 @@ Profile: {profile_data}
                     
                 return result
                 
-            except (json.JSONDecodeError, KeyError, ValueError):
+            except json.JSONDecodeError:
                 return {
                     "can_take": False,
                     "warning": "Error analyzing medicine safety - please consult a healthcare provider"

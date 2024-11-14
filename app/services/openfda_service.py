@@ -7,18 +7,6 @@ class OpenFDAService:
         self.base_url = "https://api.fda.gov/drug"
         self.api_key = settings.OPENFDA_API_KEY
 
-    async def search_medicine(self, query: str):
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.base_url}/ndc.json",
-                params={
-                    "api_key": self.api_key,
-                    "search": f"brand_name:{query}",
-                    "limit": 1
-                }
-            )
-            return response.json() 
-
     def find_medicine_by_label(self, generic_name):
         """
         Finds a medicine by its generic name using the OpenFDA API.

@@ -19,18 +19,37 @@ from app.services.cohere_service import CohereService
 @pytest.fixture
 def mock_cohere_client():
     with patch('cohere.ClientV2') as mock_client:
-        # Create a mock instance
         mock_instance = MagicMock()
         mock_client.return_value = mock_instance
-        
-        # Create AsyncMock for generate method
         mock_instance.generate = AsyncMock()
-        
         yield mock_instance
 
 @pytest.fixture
 def cohere_service(mock_cohere_client):
     return CohereService()
+
+@pytest.fixture
+def mock_openfda_service():
+    with patch('app.services.openfda_service.OpenFDAService') as mock_service:
+        mock_instance = MagicMock()
+        mock_service.return_value = mock_instance
+        mock_instance.find_medicine_by_label = MagicMock()
+        yield mock_instance
+
+@pytest.fixture
+def mock_openfda_response():
+    return {
+        "generic_name": "acetaminophen",
+        "description": "Pain reliever",
+        "warnings": ["Liver warnings", "Alcohol warnings"]
+    }
+
+@pytest.fixture
+def mock_cohere_safety_response():
+    return {
+        "can_take": True,
+        "warning": None
+    }
 
 @pytest.fixture(scope="function")
 def client():
@@ -38,23 +57,10 @@ def client():
 
 @pytest.fixture(scope="function")
 def test_db():
-    # Use in-memory SQLite for tests
     db.connect()
-    db.create_tables([
-        User,
-        PersonalProfile,
-        MedicalData,
-        Medicine,
-        Review
-    ])
+    db.create_tables([User, PersonalProfile, MedicalData, Medicine, Review])
     yield db
-    db.drop_tables([
-        User,
-        PersonalProfile,
-        MedicalData,
-        Medicine,
-        Review
-    ])
+    db.drop_tables([User, PersonalProfile, MedicalData, Medicine, Review])
     db.close()
 
 @pytest.fixture
@@ -73,8 +79,13 @@ def test_profile(test_user):
         phone="+1234567890",
         address="123 Test St"
     )
-    MedicalData.create(profile=profile)
-    return profile 
+    medical_data = MedicalData.create(
+        profile=profile,
+        allergies="none",
+        conditions="none",
+        preferred_medication_type="tablets"
+    )
+    return profile
 
 @pytest.fixture
 def test_medicine(test_db):

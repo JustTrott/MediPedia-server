@@ -39,8 +39,6 @@ async def create_profile(user_id: int, profile_data: PersonalProfileCreate):
         return profile
     except HTTPException as e:
         raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/{profile_id}", response_model=PersonalProfileResponse)
 async def update_profile(profile_id: int, profile_data: PersonalProfileCreate):
@@ -61,8 +59,6 @@ async def update_profile(profile_id: int, profile_data: PersonalProfileCreate):
         return profile
     except HTTPException as e:
         raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/{profile_id}/medical", response_model=MedicalDataResponse)
 async def update_medical_data(profile_id: int, medical_data: MedicalDataCreate):
@@ -83,9 +79,3 @@ async def update_medical_data(profile_id: int, medical_data: MedicalDataCreate):
         return data
     except HTTPException as e:
         raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) 
-
-
-def convert_to_string(instance):
-    return " ".join(str(value) for value in instance.__data__.values())
