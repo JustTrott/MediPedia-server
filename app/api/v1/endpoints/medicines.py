@@ -49,16 +49,25 @@ async def display_list(query: str, user_id: int):
         try:
             user = User.get_by_id(user_id)
             print(f"[DEBUG] Found user: {user.__data__}")
+        
+        except DoesNotExist:
+            print("[DEBUG] Failed to find user")
+            raise HTTPException(status_code=404, detail="User not found")
             
+        try:
             profile = PersonalProfile.get(PersonalProfile.user == user)
             print(f"[DEBUG] Found profile: {profile.__data__}")
             
+        except DoesNotExist:
+            print("[DEBUG] Failed to find profile")
+            profile = None
+            
+        try:
             medical_data = MedicalData.get(MedicalData.profile == profile)
             print(f"[DEBUG] Found medical data: {medical_data.__data__}")
-            
         except DoesNotExist:
-            print("[DEBUG] Failed to find user profile or medical data")
-            raise HTTPException(status_code=404, detail="User profile or medical data not found")
+            print("[DEBUG] Failed to find medical data")
+            medical_data = None
 
         # Extract medicine label using Cohere
         label = cohere_service.extract_label(query)
@@ -75,8 +84,8 @@ async def display_list(query: str, user_id: int):
             raise HTTPException(status_code=404, detail="Medicine not found in FDA database")
 
         # Convert profile and medical data to strings
-        profile_str = convert_to_string(profile)
-        medical_str = convert_to_string(medical_data)
+        profile_str = convert_to_string(profile) if profile else "No profile data"
+        medical_str = convert_to_string(medical_data) if medical_data else "No medical data"
         profile_data = json.dumps({
             "profile": profile_str,
             "medical": medical_str
