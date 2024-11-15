@@ -7,6 +7,20 @@ from app.models.medicine import Medicine
 from app.models.review import Review
 from app.api.v1.endpoints import users, medicines, reviews, profiles
 from app.config import settings
+from fastapi.middleware.cors import CORSMiddleware
+
+
+origins = [
+    "*"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
