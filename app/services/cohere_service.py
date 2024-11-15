@@ -47,7 +47,7 @@ Output: atorvastatin"""
         ]
 
         response = self.client.chat(
-            model="command",
+            model="command-r-plus",
             messages=messages,
             temperature=0.0,  # Use low temperature for consistent extraction
         )
@@ -104,7 +104,7 @@ Profile: {"allergies": "none", "conditions": "peptic ulcer", "age": 35}
 --
 Medicine: {"name": "Acetaminophen", "description": "Pain reliever and fever reducer"}
 Profile: {"allergies": "none", "conditions": "none", "age": 30}
-{"can_take": true, "warning": null}
+{"can_take": true, "warning": null}response_format="json_object"
 --"""
             },
             {
@@ -115,9 +115,10 @@ Profile: {"allergies": "none", "conditions": "none", "age": 30}
 
         try:
             response = self.client.chat(
-                model="command",
+                model="command-r-plus",
                 messages=messages,
                 temperature=0.0,
+                response_format={"type": "json_object"}
             )
 
             # Get the generated text and clean it
@@ -125,6 +126,7 @@ Profile: {"allergies": "none", "conditions": "none", "age": 30}
             
             try:
                 # Parse the JSON response
+                print(result_text)
                 result = json.loads(result_text)
                 
                 # Convert string 'true'/'false' to boolean if needed
