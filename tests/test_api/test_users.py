@@ -36,6 +36,18 @@ def test_get_user(client, test_user):
     assert data["email"] == test_user.email
     assert data["id"] == test_user.id
 
+def test_get_user_by_email(client, test_user):
+    response = client.get(f"/api/v1/users/email/{test_user.email}")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["email"] == test_user.email
+    assert data["id"] == test_user.id
+
+def test_get_user_by_email_not_found(client, test_db):
+    response = client.get("/api/v1/users/email/nonexistent@example.com")
+    assert response.status_code == 404
+    assert "not found" in response.json()["detail"]
+
 def test_get_user_not_found(client, test_db):
     response = client.get("/api/v1/users/999")
     assert response.status_code == 404

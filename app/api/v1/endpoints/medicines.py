@@ -3,24 +3,28 @@ from peewee import DoesNotExist
 from app.models.medicine import Medicine
 from app.models.profile import MedicalData, PersonalProfile
 from app.models.review import Review
-from app.schemas.medicine import MedicineCreate
+from app.schemas.medicine import (
+    MedicineCreate, 
+    MedicineResponse, 
+    MedicineSearchResponse,
+)
 from app.models.user import User
 from app.services.cohere_service import CohereService
 from app.services.openfda_service import OpenFDAService
 from app.utils import convert_to_string
+from typing import List
 import json
 
 router = APIRouter()
 cohere_service = CohereService()
 openfda_service = OpenFDAService()
 
-@router.get("/")
+@router.get("/", response_model=List[MedicineResponse])
 async def get_medicines():
     medicines = list(Medicine.select().dicts())
     return medicines
 
-
-@router.get("/{medicine_id}")
+@router.get("/{medicine_id}", response_model=MedicineResponse)
 async def get_medicine(medicine_id: int):
     try:
         medicine = Medicine.get_by_id(medicine_id)
@@ -28,7 +32,7 @@ async def get_medicine(medicine_id: int):
     except DoesNotExist:
         raise HTTPException(status_code=404, detail="Medicine not found")
 
-@router.post("/")
+@router.post("/", response_model=MedicineResponse)
 async def create_medicine(medicine_data: MedicineCreate):
     return Medicine.create(
         name=medicine_data.name,
@@ -36,7 +40,7 @@ async def create_medicine(medicine_data: MedicineCreate):
         fda_id=medicine_data.fda_id
     ).__data__
 
-@router.post("/{user_id}/search/{query}")
+@router.post("/{user_id}/search/{query}", response_model=MedicineSearchResponse)
 async def display_list(query: str, user_id: int):
     try:
         print(f"[DEBUG] Starting search for query: {query}, user_id: {user_id}")
