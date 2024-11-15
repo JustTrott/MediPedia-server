@@ -2,6 +2,10 @@
 
 A FastAPI backend application for medicine reviews with OpenFDA and Cohere AI integration.
 
+The deployment is accessible at https://medipedia-server.onrender.com/
+
+NOTICE: The deployment spins down after 10 minutes of inactivity, so it may take a while to wake up. (up to 50 seconds). Please be patient when trying out our API/Main server deployment.
+
 ## Features
 
 -   Medicine information from OpenFDA API
