@@ -93,7 +93,7 @@ async def display_list(query: str, user_id: int):
         print(f"[DEBUG] Converted profile data: {profile_data}")
 
         # Convert medicine data to string
-        medicine_str = json.dumps(medicine_data)
+        medicine_str = json.dumps(medicine_data["warnings"])
         print(f"[DEBUG] Converted medicine data: {medicine_str}")
 
         # Check if medicine is safe for user
