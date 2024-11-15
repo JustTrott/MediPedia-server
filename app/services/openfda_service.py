@@ -35,8 +35,6 @@ class MedicineResult(TypedDict):
     dosage_and_administration: List[str]
     storage_and_handling: List[str]
     inactive_ingredient: List[str]
-    questions: List[str]
-    package_label_principal_display_panel: List[str]
     set_id: str
     id: str
     effective_time: str
