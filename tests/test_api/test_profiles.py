@@ -32,7 +32,7 @@ def test_create_profile_invalid_age(client, test_user, profile_data):
     assert response.status_code == 422
     error_detail = response.json()["detail"][0]
     assert error_detail["loc"] == ["body", "age"]
-    assert "Age must be between 0 and 120" in error_detail["msg"]
+    assert "Age must be between 18 and 120" in error_detail["msg"]
 
 def test_create_profile_invalid_phone(client, test_user, profile_data):
     profile_data["phone"] = "invalid-phone"

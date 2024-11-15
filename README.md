@@ -77,7 +77,7 @@ API documentation (Swagger UI) is available at: http://localhost:8000/docs
 Testing is done via pytest and coverage report is made via coverage.py
 
 ```bash
-python -m coverage run -m pytest
+python -m coverage run -m pytest -p no:warnings
 ```
 
 And then you can view the report using:
