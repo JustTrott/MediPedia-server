@@ -11,8 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 origins = [
-    "localhost:3000",
-    "https://medipedia-one.vercel.app"
+    "*"
 ]
 
 @asynccontextmanager
