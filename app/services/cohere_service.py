@@ -80,7 +80,10 @@ Return a JSON object with two fields:
 - warning: string explaining any issues, or null if there are no issues
 
 Consider:
+- be more biased to not warn, rather than warn. make a warning after you make sure the warning is actually connected to an allergy or condition of the user
 - Patient allergies: only create a warning when the side effects of the medicine exactly match the allergies of the user. Do not make up any allergies or do not assume anything more than what you are given.
+- if the entries to allergies and conditions is nothing, the answer is most likely safe
+- if the ingredient you warn about is not in the user's profile, do not warn about it
 - Medical conditions
 - Current medications (potential interactions)
 - Age-related restrictions
