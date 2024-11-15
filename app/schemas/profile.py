@@ -14,8 +14,8 @@ class PersonalProfileBase(BaseModel):
     @field_validator('age')
     @classmethod
     def validate_age(cls, v: int) -> int:
-        if not 0 <= v <= 120:
-            raise ValueError("Age must be between 0 and 120")
+        if not 18 <= v <= 120:
+            raise ValueError("Age must be between 18 and 120")
         return v
 
     @field_validator('phone')
