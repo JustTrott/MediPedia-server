@@ -13,7 +13,12 @@ class MedicineBase(BaseModel):
     description: str | None = None
     fda_id: str | None = None
 
-class MedicineResponse(MedicineBase):
+class MedicineResponse(BaseModel):
+    id: int
+    name: str
+    description: str | None = None
+    fda_id: str | None = None
+
     model_config = ConfigDict(from_attributes=True)
 
 class SafetyResult(BaseModel):

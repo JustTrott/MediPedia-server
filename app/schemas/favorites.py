@@ -1,16 +1,14 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
-from typing import Optional
+from app.schemas.medicine import MedicineResponse
 
-class FavoriteBase(BaseModel):
-    user_id: int
-    medicine_id: int
+class FavoriteCreate(BaseModel):
+    medicine_id: int = Field(..., description="ID of the medicine to favorite")
 
-class FavoriteCreate(FavoriteBase):
-    pass
-
-class FavoriteResponse(FavoriteBase):
-    model_config = ConfigDict(from_attributes=True)
-    
+class FavoriteResponse(BaseModel):
     id: int
-    time: datetime
+    user_id: int
+    medicine: MedicineResponse
+    added_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)

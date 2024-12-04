@@ -5,7 +5,8 @@ from app.models.user import User
 from app.models.profile import PersonalProfile, MedicalData
 from app.models.medicine import Medicine
 from app.models.review import Review
-from app.api.v1.endpoints import users, medicines, reviews, profiles
+from app.models.favorites import Favorite
+from app.api.v1.endpoints import users, medicines, reviews, profiles, favorites
 from app.config import settings
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -23,7 +24,8 @@ async def lifespan(app: FastAPI):
         PersonalProfile, 
         MedicalData,
         Medicine, 
-        Review
+        Review,
+        Favorite
     ])
     
     yield
@@ -64,6 +66,11 @@ app.include_router(
     reviews.router,
     prefix=settings.API_V1_STR + "/reviews",
     tags=["reviews"]
+)
+app.include_router(
+    favorites.router,
+    prefix=settings.API_V1_STR,
+    tags=["favorites"]
 )
 
 @app.get("/")
