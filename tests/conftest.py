@@ -14,6 +14,7 @@ from app.models.user import User
 from app.models.profile import PersonalProfile, MedicalData
 from app.models.medicine import Medicine
 from app.models.review import Review
+from app.models.favorites import Favorite
 from app.services.cohere_service import CohereService
 
 @pytest.fixture
@@ -57,10 +58,11 @@ def client():
 
 @pytest.fixture(scope="function")
 def test_db():
+    db.bind([User, PersonalProfile, MedicalData, Medicine, Review, Favorite], bind_refs=False, bind_backrefs=False)
     db.connect()
-    db.create_tables([User, PersonalProfile, MedicalData, Medicine, Review])
+    db.create_tables([User, PersonalProfile, MedicalData, Medicine, Review, Favorite])
     yield db
-    db.drop_tables([User, PersonalProfile, MedicalData, Medicine, Review])
+    db.drop_tables([User, PersonalProfile, MedicalData, Medicine, Review, Favorite])
     db.close()
 
 @pytest.fixture
