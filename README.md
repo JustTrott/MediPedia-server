@@ -1,15 +1,11 @@
 # MediPedia Server
 
-A FastAPI backend application for medicine reviews with OpenFDA and Cohere AI integration.
-
-The deployment is accessible at https://medipedia-server.onrender.com/
-
-NOTICE: The deployment spins down after 10 minutes of inactivity, so it may take a while to wake up. (up to 50 seconds). Please be patient when trying out our API/Main server deployment.
+A FastAPI backend application for medicine reviews with OpenFDA and Gemini AI integration.
 
 ## Features
 
 -   Medicine information from OpenFDA API
--   User reviews with sentiment analysis using Cohere AI
+-   User reviews with sentiment analysis using Gemini AI
 -   RESTful API endpoints for users, medicines, and reviews
 -   SQLite database with Peewee ORM
 
@@ -36,17 +32,18 @@ NOTICE: The deployment spins down after 10 minutes of inactivity, so it may take
 
     ```bash
     pip install -r requirements.txt
+    pip install google-generativeai
     ```
 
 4. Create a `.env` file in the root directory with the following content:
     ```plaintext
     DATABASE_URL=sqlite:///./test.db
-    COHERE_API_KEY=your_cohere_api_key
+    GEMINI_API_KEY=your_gemini_api_key
     OPENFDA_API_KEY=your_openfda_api_key
     ```
 
 ## Running the Application
-
+pip install -r requirements.txt
 Start the development server:
 
 ```bash
@@ -81,7 +78,7 @@ API documentation (Swagger UI) is available at: http://localhost:8000/docs
 Testing is done via pytest and coverage report is made via coverage.py
 
 ```bash
-python -m coverage run -m pytest -p no:warnings
+python -m coverage run -m pytest
 ```
 
 And then you can view the report using:
