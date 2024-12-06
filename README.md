@@ -2,13 +2,6 @@
 
 A FastAPI backend application for medicine reviews with OpenFDA and Gemini AI integration.
 
-## Features
-
--   Medicine information from OpenFDA API
--   User reviews with sentiment analysis using Gemini AI
--   RESTful API endpoints for users, medicines, and reviews
--   SQLite database with Peewee ORM
-
 ## Prerequisites
 
 -   Python 3.12 or higher
@@ -43,6 +36,7 @@ A FastAPI backend application for medicine reviews with OpenFDA and Gemini AI in
     ```
 
 ## Running the Application
+
 pip install -r requirements.txt
 Start the development server:
 
@@ -78,7 +72,6 @@ API documentation (Swagger UI) is available at: http://localhost:8000/docs
 -   GET `/api/v1/favourites/` - List all favourite medicines
 -   POST `/api/v1/favourites/` - Add a new favourite medicine
 -   DELETE `/api/v1/favourites/{favourite_id}` - Remove a favourite medicine
-
 
 ## Testing
 
