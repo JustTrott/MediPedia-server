@@ -7,7 +7,7 @@ from app.models.medicine import Medicine
 class Favorite(BaseModel):
     user = ForeignKeyField(User, backref='favorites')
     medicine = ForeignKeyField(Medicine, backref='favorited_by')
-    added_at = DateTimeField(default=datetime.utcnow)
+    added_at = DateTimeField(default=datetime.now)
 
     class Meta:
         table_name = 'favorites'
