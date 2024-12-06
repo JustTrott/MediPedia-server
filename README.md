@@ -73,6 +73,13 @@ API documentation (Swagger UI) is available at: http://localhost:8000/docs
 -   GET `/api/v1/reviews/medicine/{medicine_id}` - Get all reviews for a medicine
 -   GET `/api/v1/reviews/user/{user_id}` - Get all reviews by a user
 
+### Favourites
+
+-   GET `/api/v1/favourites/` - List all favourite medicines
+-   POST `/api/v1/favourites/` - Add a new favourite medicine
+-   DELETE `/api/v1/favourites/{favourite_id}` - Remove a favourite medicine
+
+
 ## Testing
 
 Testing is done via pytest and coverage report is made via coverage.py
