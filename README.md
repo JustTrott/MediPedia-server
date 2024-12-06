@@ -32,7 +32,6 @@ A FastAPI backend application for medicine reviews with OpenFDA and Gemini AI in
 
     ```bash
     pip install -r requirements.txt
-    pip install google-generativeai
     ```
 
 4. Create a `.env` file in the root directory with the following content:
