@@ -45,31 +45,6 @@ The API will be available at: http://localhost:8000
 
 API documentation (Swagger UI) is available at: http://localhost:8000/docs
 
-## API Endpoints
-
-### Users
-
--   GET `/api/v1/users/` - List all users
--   GET `/api/v1/users/{user_id}` - Get specific user
-
-### Medicines
-
--   GET `/api/v1/medicines/` - List all medicines
--   GET `/api/v1/medicines/{medicine_id}` - Get specific medicine
-
-### Reviews
-
--   GET `/api/v1/reviews/` - List all reviews
--   GET `/api/v1/reviews/{review_id}` - Get specific review
--   GET `/api/v1/reviews/medicine/{medicine_id}` - Get all reviews for a medicine
--   GET `/api/v1/reviews/user/{user_id}` - Get all reviews by a user
-
-### Favourites
-
--   GET `/api/v1/favourites/` - List all favourite medicines
--   POST `/api/v1/favourites/` - Add a new favourite medicine
--   DELETE `/api/v1/favourites/{favourite_id}` - Remove a favourite medicine
-
 ## Testing
 
 Testing is done via pytest and coverage report is made via coverage.py
