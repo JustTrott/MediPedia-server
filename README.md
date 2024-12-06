@@ -35,7 +35,6 @@ A FastAPI backend application for medicine reviews with OpenFDA and Gemini AI in
 
 ## Running the Application
 
-pip install -r requirements.txt
 Start the development server:
 
 ```bash
