@@ -44,7 +44,6 @@ class MedicineResult(TypedDict):
 class OpenFDAService:
     def __init__(self):
         self.base_url = "https://api.fda.gov/drug"
-        self.api_key = settings.OPENFDA_API_KEY
 
     def find_medicine_by_label(self, generic_name: str) -> Optional[MedicineResult]:
         """

@@ -31,7 +31,6 @@ A FastAPI backend application for medicine reviews with OpenFDA and Gemini AI in
     ```plaintext
     DATABASE_URL=sqlite:///./test.db
     GEMINI_API_KEY=your_gemini_api_key
-    OPENFDA_API_KEY=your_openfda_api_key
     ```
 
 ## Running the Application
