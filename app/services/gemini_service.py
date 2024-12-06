@@ -16,10 +16,13 @@ class GeminiService:
         Extract generic drug name from an image using Gemini's vision model.
         
         Args:
-            file (UploadFile): Uploaded image file containing medicine label/packaging
+            file (bytes): Image file bytes containing medicine label/packaging
             
         Returns:
             str: Generic drug name
+        
+        Raises:
+            ValueError: If no drug name could be extracted or image processing failed
         """
         try:
             # Read the image file
@@ -31,18 +34,22 @@ Rules:
 - Convert brand names to their generic equivalent (e.g., Tylenol → acetaminophen)
 - Return ONLY the generic name in lowercase, nothing else
 - Use international generic names when possible (e.g., paracetamol → acetaminophen)
-- If multiple drugs are mentioned, return only the primary active ingredient"""
+- If multiple drugs are mentioned, return only the primary active ingredient
+- If no valid drug name can be found, return exactly "error" """
 
             response = self.model.generate_content([prompt, image])
             # Get the generated text and clean it
             extracted_name = response.text.strip().lower()
             # Remove any extra whitespace or newlines
             extracted_name = " ".join(extracted_name.split())
+            
+            if extracted_name == "error":
+                raise ValueError("No valid drug name found in image")
+            
             return extracted_name
 
         except Exception as e:
-            print(f"Error in extract_label_from_image: {str(e)}")
-            return ""
+            raise ValueError(f"Failed to extract drug name from image: {str(e)}")
 
     def extract_label(self, text: str) -> str:
         """
@@ -53,6 +60,9 @@ Rules:
             
         Returns:
             str: Generic drug name
+        
+        Raises:
+            ValueError: If no drug name could be extracted
         """
         prompt = """You are a pharmaceutical expert. Extract the generic drug name (active ingredient) from the given text.
 
@@ -61,6 +71,7 @@ Rules:
 - Return ONLY the generic name in lowercase, nothing else
 - Use international generic names when possible (e.g., paracetamol → acetaminophen)
 - If multiple drugs are mentioned, return only the primary active ingredient
+- If no valid drug name can be found, return exactly "error"
 
 Examples:
 Input: "I have some Tylenol for my headache"
@@ -69,24 +80,23 @@ Output: acetaminophen
 Input: "Taking 500mg paracetamol tablets"
 Output: acetaminophen
 
-Input: "Advil liquid gels 200mg"
-Output: ibuprofen
-
-Input: "My doctor prescribed Lipitor 40mg"
-Output: atorvastatin
-
-Text: {text}"""
+Input: "Random text with no medicine"
+Output: error"""
 
         try:
-            response = self.model.generate_content(prompt.format(text=text))
+            response = self.model.generate_content(prompt + "\n\nInput: " + text)
             # Get the generated text and clean it
             extracted_name = response.text.strip().lower()
             # Remove any extra whitespace or newlines
             extracted_name = " ".join(extracted_name.split())
+            
+            if extracted_name == "error":
+                raise ValueError("No valid drug name found in text")
+            
             return extracted_name
+
         except Exception as e:
-            print(f"Error in extract_label: {str(e)}")
-            return ""
+            raise ValueError(f"Failed to extract drug name: {str(e)}")
 
     def filter_by_profile(self, medicine_data: str, profile_data: str) -> dict:
         """

@@ -95,7 +95,7 @@ def test_display_list_unsafe_medicine(client, test_user, test_profile, mock_open
 
 def test_display_list_invalid_gemini_response(client, test_user, test_profile):
     with patch('app.services.gemini_service.GeminiService.extract_label') as mock_extract:
-        mock_extract.return_value = ""
+        mock_extract.side_effect = ValueError("No valid drug name found in text")
 
         response = client.post(f"/api/v1/medicines/{test_user.id}/search/Tylenol")
         
@@ -151,7 +151,7 @@ def test_search_by_image_invalid_file(client, test_user, test_profile):
 
 def test_search_by_image_extraction_failed(client, test_user, test_profile, test_image):
     with patch('app.services.gemini_service.GeminiService.extract_label_from_image') as mock_extract:
-        mock_extract.return_value = ""
+        mock_extract.side_effect = ValueError("No valid drug name found in image")
 
         response = client.post(
             f"/api/v1/medicines/{test_user.id}/search/image",

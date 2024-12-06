@@ -75,12 +75,16 @@ async def search_by_image(user_id: int, file: UploadFile = File(...)):
             medical_data = None
 
         # Extract medicine label from image using Gemini
-        contents = await file.read()
-        label = gemini_service.extract_label_from_image(contents)
-        print(f"[DEBUG] Extracted label from image: {label}")
-        if not label:
-            print("[DEBUG] Failed to extract medicine name from image")
-            raise HTTPException(status_code=400, detail="Could not extract medicine name from image")
+        try:
+            contents = await file.read()
+            label = gemini_service.extract_label_from_image(contents)
+            print(f"[DEBUG] Extracted label from image: {label}")
+        except ValueError as e:
+            print(f"[DEBUG] Failed to extract medicine name: {str(e)}")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Could not extract medicine name from image: {str(e)}"
+            )
 
         # Get medicine data from OpenFDA
         medicine_data = openfda_service.find_medicine_by_label(label)
@@ -154,7 +158,6 @@ async def display_list(query: str, user_id: int):
         try:
             user = User.get_by_id(user_id)
             print(f"[DEBUG] Found user: {user.__data__}")
-        
         except DoesNotExist:
             print("[DEBUG] Failed to find user")
             raise HTTPException(status_code=404, detail="User not found")
@@ -162,7 +165,6 @@ async def display_list(query: str, user_id: int):
         try:
             profile = PersonalProfile.get(PersonalProfile.user == user)
             print(f"[DEBUG] Found profile: {profile.__data__}")
-            
         except DoesNotExist:
             print("[DEBUG] Failed to find profile")
             profile = None
@@ -175,11 +177,15 @@ async def display_list(query: str, user_id: int):
             medical_data = None
 
         # Extract medicine label using Gemini
-        label = gemini_service.extract_label(query)
-        print(f"[DEBUG] Extracted label from Gemini: {label}")
-        if not label:
-            print("[DEBUG] Failed to extract medicine name from Gemini")
-            raise HTTPException(status_code=400, detail="Could not extract medicine name")
+        try:
+            label = gemini_service.extract_label(query)
+            print(f"[DEBUG] Extracted label from Gemini: {label}")
+        except ValueError as e:
+            print(f"[DEBUG] Failed to extract medicine name: {str(e)}")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Could not extract medicine name: {str(e)}"
+            )
 
         # Get medicine data from OpenFDA
         medicine_data = openfda_service.find_medicine_by_label(label)

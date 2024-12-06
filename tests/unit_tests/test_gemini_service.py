@@ -136,12 +136,47 @@ def test_extract_label_from_image_cleanup(gemini_service, mock_gemini_model, tes
 def test_extract_label_from_image_error(gemini_service, mock_gemini_model, test_image):
     mock_gemini_model.generate_content.side_effect = Exception("API error")
 
-    result = gemini_service.extract_label_from_image(test_image.getvalue())
+    with pytest.raises(ValueError) as exc_info:
+        gemini_service.extract_label_from_image(test_image.getvalue())
     
-    assert result == ""
+    assert "Failed to extract drug name from image: API error" in str(exc_info.value)
 
 def test_extract_label_from_image_invalid_image(gemini_service, mock_gemini_model):
     result = gemini_service.extract_label_from_image(b"not an image")
     
     assert result == ""
-    mock_gemini_model.generate_content.assert_not_called() 
+    mock_gemini_model.generate_content.assert_not_called()
+
+def test_extract_label_no_drug_found(gemini_service, mock_gemini_model):
+    mock_response = MagicMock()
+    mock_response.text = "error"
+    mock_gemini_model.generate_content.return_value = mock_response
+
+    with pytest.raises(ValueError) as exc_info:
+        gemini_service.extract_label("Random text with no medicine")
+    
+    assert "No valid drug name found in text" in str(exc_info.value)
+
+def test_extract_label_api_error(gemini_service, mock_gemini_model):
+    mock_gemini_model.generate_content.side_effect = Exception("API error")
+
+    with pytest.raises(ValueError) as exc_info:
+        gemini_service.extract_label("Tylenol")
+    
+    assert "Failed to extract drug name" in str(exc_info.value)
+
+def test_extract_label_from_image_no_drug_found(gemini_service, mock_gemini_model, test_image):
+    mock_response = MagicMock()
+    mock_response.text = "error"
+    mock_gemini_model.generate_content.return_value = mock_response
+
+    with pytest.raises(ValueError) as exc_info:
+        gemini_service.extract_label_from_image(test_image.getvalue())
+    
+    assert "No valid drug name found in image" in str(exc_info.value)
+
+def test_extract_label_from_image_invalid_image(gemini_service, mock_gemini_model):
+    with pytest.raises(ValueError) as exc_info:
+        gemini_service.extract_label_from_image(b"not an image")
+    
+    assert "Failed to extract drug name from image" in str(exc_info.value) 
