@@ -3,6 +3,8 @@ import sys
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
+import io
+from PIL import Image
 
 # Add project root to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -15,19 +17,19 @@ from app.models.profile import PersonalProfile, MedicalData
 from app.models.medicine import Medicine
 from app.models.review import Review
 from app.models.favorites import Favorite
-from app.services.cohere_service import CohereService
+from app.services.gemini_service import GeminiService
 
 @pytest.fixture
-def mock_cohere_client():
-    with patch('cohere.ClientV2') as mock_client:
+def mock_gemini_model():
+    with patch('google.generativeai.GenerativeModel') as mock_model:
         mock_instance = MagicMock()
-        mock_client.return_value = mock_instance
-        mock_instance.chat = MagicMock()
+        mock_model.return_value = mock_instance
+        mock_instance.generate_content = MagicMock()
         yield mock_instance
 
 @pytest.fixture
-def cohere_service(mock_cohere_client):
-    return CohereService()
+def gemini_service(mock_gemini_model):
+    return GeminiService()
 
 @pytest.fixture
 def mock_openfda_service():
@@ -184,3 +186,12 @@ def mock_openfda_malformed_response():
             }
         }]
     }
+
+@pytest.fixture
+def test_image():
+    # Create a simple test image with some white text on black background
+    img = Image.new('RGB', (100, 30), color='white')
+    img_byte_arr = io.BytesIO()
+    img.save(img_byte_arr, format='PNG')
+    img_byte_arr.seek(0)
+    return img_byte_arr

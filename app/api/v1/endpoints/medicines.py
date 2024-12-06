@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File
 from peewee import DoesNotExist
 from app.models.medicine import Medicine
 from app.models.profile import MedicalData, PersonalProfile
@@ -9,14 +9,14 @@ from app.schemas.medicine import (
     MedicineSearchResponse,
 )
 from app.models.user import User
-from app.services.cohere_service import CohereService
+from app.services.gemini_service import GeminiService
 from app.services.openfda_service import OpenFDAService
 from app.utils import convert_to_string
 from typing import List
 import json
 
 router = APIRouter()
-cohere_service = CohereService()
+gemini_service = GeminiService()
 openfda_service = OpenFDAService()
 
 @router.get("/", response_model=List[MedicineResponse])
@@ -40,16 +40,22 @@ async def create_medicine(medicine_data: MedicineCreate):
         fda_id=medicine_data.fda_id
     ).__data__
 
-@router.post("/{user_id}/search/{query}", response_model=MedicineSearchResponse)
-async def display_list(query: str, user_id: int):
+@router.post("/{user_id}/search/image", response_model=MedicineSearchResponse)
+async def search_by_image(user_id: int, file: UploadFile = File(...)):
+    """
+    Search for medicine information using an uploaded image of the medicine label/packaging.
+    """
     try:
-        print(f"[DEBUG] Starting search for query: {query}, user_id: {user_id}")
+        print(f"[DEBUG] Starting image search for user_id: {user_id}")
+        
+        # Validate file type
+        if not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
         
         # Get user profile and medical data
         try:
             user = User.get_by_id(user_id)
             print(f"[DEBUG] Found user: {user.__data__}")
-        
         except DoesNotExist:
             print("[DEBUG] Failed to find user")
             raise HTTPException(status_code=404, detail="User not found")
@@ -57,7 +63,6 @@ async def display_list(query: str, user_id: int):
         try:
             profile = PersonalProfile.get(PersonalProfile.user == user)
             print(f"[DEBUG] Found profile: {profile.__data__}")
-            
         except DoesNotExist:
             print("[DEBUG] Failed to find profile")
             profile = None
@@ -69,12 +74,13 @@ async def display_list(query: str, user_id: int):
             print("[DEBUG] Failed to find medical data")
             medical_data = None
 
-        # Extract medicine label using Cohere
-        label = cohere_service.extract_label(query)
-        print(f"[DEBUG] Extracted label from Cohere: {label}")
+        # Extract medicine label from image using Gemini
+        contents = await file.read()
+        label = gemini_service.extract_label_from_image(contents)
+        print(f"[DEBUG] Extracted label from image: {label}")
         if not label:
-            print("[DEBUG] Failed to extract medicine name from Cohere")
-            raise HTTPException(status_code=400, detail="Could not extract medicine name")
+            print("[DEBUG] Failed to extract medicine name from image")
+            raise HTTPException(status_code=400, detail="Could not extract medicine name from image")
 
         # Get medicine data from OpenFDA
         medicine_data = openfda_service.find_medicine_by_label(label)
@@ -97,7 +103,7 @@ async def display_list(query: str, user_id: int):
         print(f"[DEBUG] Converted medicine data: {medicine_str}")
 
         # Check if medicine is safe for user
-        safety_result = cohere_service.filter_by_profile(medicine_str, profile_data)
+        safety_result = gemini_service.filter_by_profile(medicine_str, profile_data)
         print(f"[DEBUG] Safety check result: {safety_result}")
         
         # Get or create medicine record
@@ -139,4 +145,101 @@ async def display_list(query: str, user_id: int):
         print(f"[DEBUG] HTTPException occurred: {str(e)}")
         raise e
 
+@router.post("/{user_id}/search/{query}", response_model=MedicineSearchResponse)
+async def display_list(query: str, user_id: int):
+    try:
+        print(f"[DEBUG] Starting search for query: {query}, user_id: {user_id}")
+        
+        # Get user profile and medical data
+        try:
+            user = User.get_by_id(user_id)
+            print(f"[DEBUG] Found user: {user.__data__}")
+        
+        except DoesNotExist:
+            print("[DEBUG] Failed to find user")
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        try:
+            profile = PersonalProfile.get(PersonalProfile.user == user)
+            print(f"[DEBUG] Found profile: {profile.__data__}")
+            
+        except DoesNotExist:
+            print("[DEBUG] Failed to find profile")
+            profile = None
+            
+        try:
+            medical_data = MedicalData.get(MedicalData.profile == profile)
+            print(f"[DEBUG] Found medical data: {medical_data.__data__}")
+        except DoesNotExist:
+            print("[DEBUG] Failed to find medical data")
+            medical_data = None
 
+        # Extract medicine label using Gemini
+        label = gemini_service.extract_label(query)
+        print(f"[DEBUG] Extracted label from Gemini: {label}")
+        if not label:
+            print("[DEBUG] Failed to extract medicine name from Gemini")
+            raise HTTPException(status_code=400, detail="Could not extract medicine name")
+
+        # Get medicine data from OpenFDA
+        medicine_data = openfda_service.find_medicine_by_label(label)
+        print(f"[DEBUG] OpenFDA medicine data: {medicine_data}")
+        if not medicine_data:
+            print("[DEBUG] Failed to find medicine in FDA database")
+            raise HTTPException(status_code=404, detail="Medicine not found in FDA database")
+
+        # Convert profile and medical data to strings
+        profile_str = convert_to_string(profile) if profile else "No profile data"
+        medical_str = convert_to_string(medical_data) if medical_data else "No medical data"
+        profile_data = json.dumps({
+            "profile": profile_str,
+            "medical": medical_str
+        })
+        print(f"[DEBUG] Converted profile data: {profile_data}")
+
+        # Convert medicine data to string
+        medicine_str = json.dumps(medicine_data)
+        print(f"[DEBUG] Converted medicine data: {medicine_str}")
+
+        # Check if medicine is safe for user
+        safety_result = gemini_service.filter_by_profile(medicine_str, profile_data)
+        print(f"[DEBUG] Safety check result: {safety_result}")
+        
+        # Get or create medicine record
+        try:
+            medicine, created = Medicine.get_or_create(
+                fda_id=medicine_data['id'],
+                defaults={
+                    'name': medicine_data['openfda']['generic_name'][0] if medicine_data['openfda'].get('generic_name') else medicine_data['openfda']['brand_name'][0],
+                    'description': medicine_data.get('indications_and_usage', [''])[0]
+                }
+            )
+            print(f"[DEBUG] Medicine {'created' if created else 'retrieved'}: {medicine.__data__}")
+
+            # Get associated reviews
+            reviews = list(medicine.reviews.select(
+                Review, User
+            ).join(
+                User
+            ).order_by(
+                Review.created_at.desc()
+            ).dicts())
+            
+            print(f"[DEBUG] Found {len(reviews)} reviews")
+
+            return {
+                "medicine": {
+                    **medicine.__data__,
+                    "reviews": reviews
+                },
+                "safety": safety_result,
+                "fda_data": medicine_data
+            }
+
+        except Exception as e:
+            print(f"[DEBUG] Error creating/retrieving medicine: {str(e)}")
+            raise HTTPException(status_code=500, detail="Error processing medicine data")
+
+    except HTTPException as e:
+        print(f"[DEBUG] HTTPException occurred: {str(e)}")
+        raise e
