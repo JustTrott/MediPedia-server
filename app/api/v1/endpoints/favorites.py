@@ -30,7 +30,7 @@ async def add_favorite(
         (Favorite.user == user) & (Favorite.medicine == medicine)
     ).exists()
     if exists:
-        raise HTTPException(status_code=400, detail="Medicine already in favorites")
+        return {"detail": "Medicine already in favorites"}
 
     # Create favorite
     favorite = Favorite.create(user=user, medicine=medicine)
@@ -40,6 +40,32 @@ async def add_favorite(
         'medicine': MedicineResponse.model_validate(favorite.medicine),
         'added_at': favorite.added_at
     })
+
+@router.post("/users/{user_id}/favorites/toggle", response_model=dict)
+async def toggle_favorite(
+    user_id: int,
+    favorite_data: FavoriteCreate
+):
+    # Retrieve the user using user_id
+    user = User.get_or_none(User.id == user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Check if medicine exists
+    medicine = Medicine.get_or_none(Medicine.id == favorite_data.medicine_id)
+    if medicine is None:
+        raise HTTPException(status_code=404, detail="Medicine not found")
+
+    # Check if favorite already exists
+    favorite = Favorite.get_or_none(
+        (Favorite.user == user) & (Favorite.medicine == medicine)
+    )
+    if favorite:
+        favorite.delete_instance()
+        return {"detail": "Favorite removed successfully"}
+    else:
+        Favorite.create(user=user, medicine=medicine)
+        return {"detail": "Favorite added successfully"}
 
 @router.get("/users/{user_id}/favorites", response_model=List[FavoriteResponse])
 async def get_user_favorites(user_id: int):
@@ -58,6 +84,7 @@ async def get_user_favorites(user_id: int):
         })
         for fav in favorites
     ]
+
 @router.delete("/users/{user_id}/favorites/{medicine_id}", response_model=dict)
 async def remove_favorite(
     user_id: int,
